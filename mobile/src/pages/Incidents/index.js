@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
-import { View, FlatList, Image, Text, TouchableOpacity} from 'react-native'
+import { View, FlatList, Image, Text, TouchableOpacity, ActivityIndicator} from 'react-native'
 
 import api from '../../services/api'
 
@@ -23,9 +23,9 @@ export default function Incidents() {
   }
   
   async function loadIncidents() {
-    if (loading) return
-    if (total > 0 && incidents.length === total) return
-
+    if (loading) { return }
+    if (total > 0 && incidents.length === total) { return }
+    
     setLoading(true)
 
     const response = await api.get('incidents', {
@@ -61,6 +61,16 @@ export default function Incidents() {
         showsVerticalScrollIndicator={false}
         onEndReached={loadIncidents}
         onEndReachedThreshold={0.2}
+        ListFooterComponent={
+          loading && 
+          <ActivityIndicator
+            style={{
+              marginBottom: 20, 
+              marginTop: 10 
+            }} 
+            size={'small'} 
+            color={'#e02041'}
+          />}
         renderItem={({ item: incident }) => (
           <View style={styles.incident}>
             <Text style={styles.incidentProperty}>ONG:</Text>
