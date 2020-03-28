@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
-import { View, FlatList, Image, Text, TouchableOpacity, ActivityIndicator} from 'react-native'
+import { View, FlatList, Image, Text, TouchableOpacity, ActivityIndicator, RefreshControl} from 'react-native'
 
 import api from '../../services/api'
 
@@ -15,6 +15,7 @@ export default function Incidents() {
   
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   const navigation = useNavigation()
 
@@ -24,7 +25,7 @@ export default function Incidents() {
   
   async function loadIncidents() {
     if (loading) { return }
-    if (total > 0 && incidents.length === total) { return }
+    if (total != 0 && incidents.length == total) { return }
     
     setLoading(true)
 
@@ -36,6 +37,18 @@ export default function Incidents() {
     setTotal(response.headers['x-total-count'])
     setPage(page + 1)
     setLoading(false)
+  }
+
+  async function refreshIncidents() {
+    setRefreshing(true)
+
+    const response = await api.get('incidents?page=1')
+
+    setIncidents(response.data)
+    setTotal(response.headers['x-total-count'])
+    setPage(2)
+
+    setRefreshing(false)
   }
 
   useEffect(() => {
@@ -61,8 +74,15 @@ export default function Incidents() {
         showsVerticalScrollIndicator={false}
         onEndReached={loadIncidents}
         onEndReachedThreshold={0.2}
+        refreshControl={
+          <RefreshControl 
+            onRefresh={refreshIncidents}
+            refreshing={refreshing}
+            colors={['#e02041']}
+          />
+        }
         ListFooterComponent={
-          loading && 
+          loading && !refreshing && 
           <ActivityIndicator
             style={{
               marginBottom: 20, 
